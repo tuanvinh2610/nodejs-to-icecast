@@ -1,11 +1,17 @@
 package com.example.tuanvinh.weatherapplication;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.style.TtsSpan;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,99 +20,119 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public final static String KEY_EXTRA_CONTACT_ID = "KEY_EXTRA_CONTACT_ID";
+
+    private ListView listView;
+    DatabaseHandler databaseHandler;
 
     TextView result1;
 
     EditText cityName;
 
+    Weather weather;
+    Context context;
+
+    ArrayList<HashMap<String, String>> weatherList;
+
     // This method would be called when What's the weather button would be pressed
     public void findtheweather(View view) {
 
-        //Assigning the value which user entered to String s
         String s = cityName.getText().toString();
 
-        // Calling download task function
         download task = new download();
 
-        // Executing download task and change this " uk&appid=9f681051b003f104ae5e2a0cbef19a02" with your own API KEY
         task.execute("http://api.openweathermap.org/data/2.5/weather?q=" + s + "&appid=9f681051b003f104ae5e2a0cbef19a02");
 
     }
+
+    public void saveWeather(View view) {
+        Intent intent = new Intent(this, ListWeatherActivity.class);
+        this.startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        weatherList = new ArrayList<>();
 
-        // Using id to tell where to make changes
         cityName = (EditText) findViewById(R.id.cityname);
+
     }
 
-    // Creating download method with Async Task ( we r going to use this to get data from internet and parse it )
     private class download extends AsyncTask<String, Void, String> {
 
-        // This method execute after doInBackground method and Parse the Json
 
         @Override
         protected void onPostExecute(String result) {
-// Try and catch block to catch any errors
             try {
-
-                // linking result1 with textView with id result
                 result1 = (TextView) findViewById(R.id.result);
 
-//                calling  JSONObject as jsonObject
                 JSONObject jsonObject = new JSONObject(result);
 
-//                using jsonObject to get String from Json which is tagged as weather
+                Integer id = jsonObject.getInt("id");
+                String name = jsonObject.getString("name");
                 String weather = jsonObject.getString("weather");
 
+                JSONObject main = jsonObject.getJSONObject("main");
+                Double temp = main.getDouble("temp");
+                Double humidity = main.getDouble("humidity");
+
+
                 JSONObject wind = jsonObject.getJSONObject("wind");
-                String speed = wind.getString("speed");
-                result1.setText(String.format("Speed: %s",speed));
+                Double speed = wind.getDouble("speed");
 
-//        calling JSONArray as arr
-                JSONArray arr    = new JSONArray(weather);
-// using for loop to loop through arr array
-                for (int i = 0; i <= arr.length(); i++) {
+                JSONArray arr = new JSONArray(weather);
+//                for (int i = 0; i <= arr.length(); i++) {
 
-                    JSONObject jsonPart = arr.getJSONObject(i);
+                JSONObject jsonPart = arr.getJSONObject(0);
 
-                    // using result1 to set Text of that Text view with id Result  to this
-                    result1.setText(String.format("Weather : %s , Description : %s", jsonPart.getString("main"), jsonPart.getString("description")));
-                }
 
-//                e.printStackTrace will just print a error report like a normal program do when it crashes u can change this with anything u like
+                HashMap<String, String> mapWeather = new HashMap<>();
+                mapWeather.put("id", id.toString());
+                mapWeather.put("name", name);
+                mapWeather.put("main", jsonPart.getString("main"));
+                mapWeather.put("description", jsonPart.getString("description"));
+                mapWeather.put("temp", temp.toString());
+                mapWeather.put("humidity", humidity.toString());
+                mapWeather.put("speed", speed.toString());
+
+                 weatherList.add(mapWeather);
+//                databaseHandler = new DatabaseHandler(context);
+//                databaseHandler.addWeather();
+
+
+                result1.setText(String.format("Id: %s\n Name: %s\n Main : %s\n Description : %s\n Temperature:%s\n Humidity:%s\n Speed: %s\n",
+                        id, name, jsonPart.getString("main"), jsonPart.getString("description"), temp, humidity, speed));
+//                }
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         }
 
-        // do doInBackground method we r using this method to download Json from site.
         @Override
         protected String doInBackground(String... urls) {
             String result = "";
 
-//            calling url as url
             URL url;
-//            calling HttpUrlConnection as urlConnection
             HttpURLConnection urlConnection;
 
-//            Using try and catch block to find any errors
             try {
-                // assigning url value of first object in array called urls which is declared in this start of this method
                 url = new URL(urls[0]);
 
-                // using urlConnection to open url which we assigning URL before
                 urlConnection = (HttpURLConnection) url.openConnection();
 
-                // Using InputStream to download the content
                 InputStream inputStream = urlConnection.getInputStream();
-                // Using InputStreamReader to read the inputstream or the data we r downloading
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 
 //                using it to check if we reached the end of String / Data
@@ -125,9 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
                 return result;
 
-//                Try and catch block to catch any errors
             } catch (Exception e) {
-//                e.printStackTrace will just print a error report like a normal program do when it crashes u can change this with anything u like
                 e.printStackTrace();
             }
 

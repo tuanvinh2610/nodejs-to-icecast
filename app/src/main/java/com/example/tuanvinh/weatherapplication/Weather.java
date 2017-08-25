@@ -16,27 +16,14 @@ public class Weather {
     public Weather() {
     }
 
-    public Weather(Integer id, String name, String main) {
+    public Weather(Integer id, String name, String main, String description, Double temp, Double humidity, Double speed) {
         this.id = id;
         this.name = name;
         this.main = main;
         this.description = description;
-        temp = temp;
+        this.temp = temp;
         this.humidity = humidity;
         this.speed = speed;
-    }
-
-    @Override
-    public String toString() {
-        return "Weather{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", main='" + main + '\'' +
-                ", description='" + description + '\'' +
-                ", temp=" + temp +
-                ", humidity=" + humidity +
-                ", speed=" + speed +
-                '}';
     }
 
     public Integer getId() {
@@ -76,7 +63,7 @@ public class Weather {
     }
 
     public void setTemp(Double temp) {
-        temp = temp;
+        this.temp = temp;
     }
 
     public Double getHumidity() {
@@ -93,6 +80,19 @@ public class Weather {
 
     public void setSpeed(Double speed) {
         this.speed = speed;
+    }
+
+    @Override
+    public String toString() {
+        return "Weather{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", main='" + main + '\'' +
+                ", description='" + description + '\'' +
+                ", temp=" + temp +
+                ", humidity=" + humidity +
+                ", speed=" + speed +
+                '}';
     }
 }
 
